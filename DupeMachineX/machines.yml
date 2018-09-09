@@ -1,0 +1,43 @@
+# ################################################################### #
+#                                                                     #
+# Section -> Inventories                                              #
+#                                                                     #                     
+# From this section you'll be able to modify how the plugin works.    #
+# You'll basically be able to change some timers, modify the GUI etc. #
+#                                                                     #
+# default -> If no other inventory is met, default will be used.      #
+#                                                                     #
+# ################################################################### #
+
+Inventories:
+  default:
+    priority: 2147483646 # Lower numbers take priority, meaning default will be counted last.   
+    rows: 3 # This is multiplied by 9, meaning this will be 3*9 -> 27 slots (3 rows)
+    name: '&6-> &3DupeMachineX &6<-' # Gui's name
+    items-per-dupe: 1 # every "dupe-ticks", this many amount(s) will be duped.
+    dupe-ticks: 20 # 20 ticks is equal to 1 second
+    viewable: true # Can others view this machine working?
+  vip:
+    priority : 2 # This can also be 0 but try not to go below that.
+    allowed-ranks:
+      - 'Owner'
+      - 'Donator'
+      - 'Vip'
+    allowed-users:
+      - 'shin1gamiX' # Caps don't matter :)!
+    rows: 6
+    name: '&e-> &2DupeMachineX &e<-'
+    items-per-dupe: 2
+    dupe-ticks: 10 # 20 ticks is equal to 1 second so 10 ticks are 0.5 seconds (faster than default)
+    viewable: true
+  for-gods:
+    priority : 1
+    allowed-ranks:
+      - 'Creator'
+    allowed-users:
+      - 'Notch'
+    rows: 6
+    name: '&cOh god ;-;'
+    items-per-dupe: 64
+    dupe-ticks: 40
+    viewable: false
