@@ -338,8 +338,9 @@ public final class DupeHandler {
 						dupeItemLoop: for (final ItemStack i : inv.getContents()) {
 
 							/* Is the item air? */
-							if (i == null)
+							if (i == null || i.getType() == Material.AIR) {
 								continue dupeItemLoop;
+							}
 
 							/* ItemStack checking */
 							for (final String loop : blacklist.getConfigurationSection("Items").getKeys(false)) {
@@ -347,28 +348,22 @@ public final class DupeHandler {
 
 								/* Is the banned item a simple material? If so, block em all */
 								if (!itemStack.hasItemMeta() && itemStack.getType() == i.getType()) {
-									if (!playSound) {
-										playSound = true;
-									}
 									continue dupeItemLoop;
 								}
 
 								/* Is the banned item similar to the item being duped? */
 								if (itemStack.isSimilar(i)) {
-									if (!playSound) {
-										playSound = true;
-									}
 									continue dupeItemLoop;
 								}
 
 							}
 
-							/* Is the amount already full? If so, skip */
+							/* Is the amount already full? If so, skip it. */
 							if (i.getAmount() == 64) {
 								continue dupeItemLoop;
 							}
 
-							/* Is the amount going to exceed the max size? If so, set it to max */
+							/* Is the amount going to exceed the supposed max size? If so, set it to 64 */
 							if (i.getAmount() + itemsPerTime > 64) {
 								i.setAmount(64);
 								if (!playSound) {
@@ -377,7 +372,7 @@ public final class DupeHandler {
 								continue dupeItemLoop;
 							}
 
-							/* Dupe that sh!t */
+							/* Dupe that sh!t ;-; */
 							i.setAmount(i.getAmount() + itemsPerTime);
 							if (!playSound) {
 								playSound = true;
