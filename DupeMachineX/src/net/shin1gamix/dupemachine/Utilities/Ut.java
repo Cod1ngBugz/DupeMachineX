@@ -72,6 +72,28 @@ public final class Ut {
 	}
 
 	/**
+	 * Sends a translated message to the server.
+	 *
+	 * @param message
+	 *            Which string to broadcast
+	 * 
+	 */
+	public static void msgConsole(String message) {
+		Bukkit.getServer().broadcastMessage(tr(message));
+	}
+
+	/**
+	 * Sends a translated list message to the server.
+	 *
+	 * @param message
+	 *            Which List string to broadcast
+	 * 
+	 */
+	public static void msgConsole(List<String> message) {
+		tr(message).forEach(Bukkit.getServer().getConsoleSender()::sendMessage);
+	}
+
+	/**
 	 * Sends a message to a CommandSender.
 	 *
 	 * @param target

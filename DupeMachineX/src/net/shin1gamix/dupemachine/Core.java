@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -19,6 +18,7 @@ import net.shin1gamix.dupemachine.Listeners.ViewerInterfere;
 import net.shin1gamix.dupemachine.Utilities.CFG;
 import net.shin1gamix.dupemachine.Utilities.DupeHandler;
 import net.shin1gamix.dupemachine.Utilities.Metrics;
+import net.shin1gamix.dupemachine.Utilities.UpdateChecker;
 import net.shin1gamix.dupemachine.Utilities.Ut;
 import net.shin1gamix.dupemachine.Utilities.VaultSetup;
 
@@ -76,19 +76,9 @@ public class Core extends JavaPlugin {
 		/* Start all duplication tasks */
 		this.getDupeHandler().startTasks();
 
-		final int amountOfMachines = this.getDupeHandler().getAllMachines(false, false).size();
+		new UpdateChecker(this); // Update check added
 
-		// All you have to do is adding this line in your onEnable method:
-		Metrics metrics = new Metrics(this);
-
-		// Optional: Add custom charts
-		metrics.addCustomChart(new Metrics.SimplePie("machine_amount", new Callable<String>() {
-			@Override
-			public String call() {
-				return String.valueOf(amountOfMachines);
-			}
-		}));
-
+		this.enableMetrics(); // Enabling metrics
 	}
 
 	/**
@@ -98,6 +88,12 @@ public class Core extends JavaPlugin {
 	@Override
 	public void onDisable() {
 		this.getDupeHandler().disableFunction(true);
+	}
+
+	private void enableMetrics() {
+		Metrics metrics = new Metrics(this);
+		metrics.addCustomChart(new Metrics.SimplePie("machine_amount",
+				() -> String.valueOf(getDupeHandler().getAllMachines(false, false).size())));
 	}
 
 	/**

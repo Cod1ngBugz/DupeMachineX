@@ -1,6 +1,6 @@
 name: DupeMachineX
 author: Shin1gamiX
-version: 0.8
+version: 0.9
 main: net.shin1gamix.dupemachine.Core
 website: https://github.com/Cod1ngBugz/DupeMachineX
 description: Allows you to duplicate items in a GUI.
@@ -26,8 +26,12 @@ permissions:
       dupemachinex.allow.player: true
       dupemachinex.disallow.rank: true
       dupemachinex.allow.rank: true
+      dupemachinex.update: true
   dupemachinex.use:
     description: Allows you to open the duplication machine.
+    default: op
+  dupemachinex.update:
+    description: Notify all operators about plugin updates!
     default: op
   dupemachinex.reload:
     description: Allows you to reload the plugin.
