@@ -96,7 +96,7 @@ public class Duplication implements CommandExecutor {
 				if (!p.hasPermission("dupemachinex.blacklist")) {
 					MessagesX.NO_PERMISSION.msg(p);
 				} else {
-					this.getCore().getDupeHandler().addBannedItem(p, args[1].toLowerCase(), p.getItemInHand());
+					this.getCore().getDupeHandler().addBannedItem(p, args[1].toLowerCase());
 				}
 				return true;
 			case "remove":

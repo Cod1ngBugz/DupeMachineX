@@ -247,7 +247,14 @@ public final class DupeHandler {
 	 * @return Nothing
 	 * @since 0.1
 	 */
-	public void addBannedItem(final Player p, final String id, final ItemStack item) {
+	public void addBannedItem(final Player p, final String id) {
+		final ItemStack item;
+		if (Bukkit.getVersion().contains("1.8")) {
+			item = p.getItemInHand();
+		} else {
+			item = p.getInventory().getItemInMainHand();
+		}
+
 		if (item == null || item.getType() == Material.AIR) {
 			MessagesX.NO_ITEM_IN_HAND.msg(p);
 			return;
@@ -403,7 +410,11 @@ public final class DupeHandler {
 	 * @since 0.1
 	 */
 	private void playSound(final Player player) {
-		player.playSound(player.getLocation(), Sound.ITEM_PICKUP, 1, 1);
+		try {
+			player.playSound(player.getLocation(), Bukkit.getVersion().contains("1.8") ? Sound.valueOf("ITEM_PICKUP")
+					: Sound.valueOf("ENTITY_ITEM_PICKUP"), 1, 1);
+		} catch (Exception expected) {
+		}
 	}
 
 	/**
