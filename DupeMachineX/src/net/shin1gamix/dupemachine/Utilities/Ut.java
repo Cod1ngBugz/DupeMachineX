@@ -1,7 +1,6 @@
 package net.shin1gamix.dupemachine.Utilities;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -67,7 +66,7 @@ public final class Ut {
 	 *            Which string to broadcast
 	 * 
 	 */
-	public static void bcMsg(String message) {
+	public static void bcMsg(final String message) {
 		Bukkit.getServer().broadcastMessage(tr(message));
 	}
 
@@ -78,7 +77,7 @@ public final class Ut {
 	 *            Which string to broadcast
 	 * 
 	 */
-	public static void msgConsole(String message) {
+	public static void msgConsole(final String message) {
 		Bukkit.getServer().broadcastMessage(tr(message));
 	}
 
@@ -89,7 +88,7 @@ public final class Ut {
 	 *            Which List string to broadcast
 	 * 
 	 */
-	public static void msgConsole(List<String> message) {
+	public static void msgConsole(final List<String> message) {
 		tr(message).forEach(Bukkit.getServer().getConsoleSender()::sendMessage);
 	}
 
@@ -102,7 +101,7 @@ public final class Ut {
 	 *            The message to be sent.
 	 * 
 	 */
-	public static void msg(CommandSender target, String message) {
+	public static void msg(final CommandSender target, final String message) {
 		target.sendMessage(tr(message));
 	}
 
@@ -115,7 +114,7 @@ public final class Ut {
 	 *            The list message to be sent.
 	 * 
 	 */
-	public static void msg(CommandSender target, List<String> message) {
+	public static void msg(final CommandSender target, final List<String> message) {
 		tr(message).forEach(target::sendMessage);
 	}
 
@@ -161,7 +160,7 @@ public final class Ut {
 	 * 
 	 * @return A translated message
 	 */
-	public static String tr(String msg) {
+	public static String tr(final String msg) {
 		return ChatColor.translateAlternateColorCodes('&', msg);
 	}
 
@@ -173,7 +172,7 @@ public final class Ut {
 	 * 
 	 * @return A translated message
 	 */
-	public static List<String> tr(Collection<? extends String> coll) {
+	public static List<String> tr(final List<String> coll) {
 		return coll.stream().map(str -> tr(str)).collect(Collectors.toList());
 	}
 
@@ -188,9 +187,10 @@ public final class Ut {
 	 * @return A given string with it's first letter capped.
 	 * 
 	 */
-	public static String capFirst(String string, boolean reset) {
-		if (reset)
+	public static String capFirst(String string, final boolean reset) {
+		if (reset) {
 			string = string.toLowerCase();
+		}
 		return string.substring(0, 1).toUpperCase() + string.substring(1);
 	}
 
@@ -205,10 +205,11 @@ public final class Ut {
 	 * @return The string that has been replaced with placeholders
 	 * 
 	 */
-	public static String placeholderStr(String str, Map<String, String> map) {
-		if (map == null)
+	public static String placeholderStr(String str, final Map<String, String> map) {
+		if (map == null) {
 			return str;
-		for (Entry<String, String> entr : map.entrySet()) {
+		}
+		for (final Entry<String, String> entr : map.entrySet()) {
 			str = str.replace(entr.getKey(), entr.getValue());
 		}
 		return str;
@@ -225,9 +226,10 @@ public final class Ut {
 	 * @return The collection that has been replaced with placeholders
 	 * 
 	 */
-	public static List<String> placeholderColl(Collection<? extends String> coll, Map<String, String> map) {
-		if (map == null)
-			return new ArrayList<>();
+	public static List<String> placeholderColl(final List<String> coll, final Map<String, String> map) {
+		if (map == null) {
+			return coll;
+		}
 		return coll.stream().map(x -> placeholderStr(x, map)).collect(Collectors.toList());
 	}
 
@@ -258,7 +260,7 @@ public final class Ut {
 	 * @return A random number between two integers
 	 * 
 	 */
-	public static int getRandomInt(int min, int max) {
+	public static int getRandomInt(final int min, final int max) {
 		if (max <= min) {
 			throw new NumberFormatException(
 					"The minimum number can't be higher than the maximum, min:" + min + " - max:" + max);

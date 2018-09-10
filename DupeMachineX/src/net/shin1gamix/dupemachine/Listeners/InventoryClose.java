@@ -1,7 +1,9 @@
 package net.shin1gamix.dupemachine.Listeners;
 
+import java.util.Map;
+import java.util.stream.Stream;
+
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -40,47 +42,46 @@ public class InventoryClose implements Listener {
 	 * viewers from the necessary maps.
 	 * 
 	 * @return Nothing
-	 * @since 0.1
+	 * @since 1.0
 	 */
 	@EventHandler
 	private void onClose(final InventoryCloseEvent e) {
 		final Player p = (Player) e.getPlayer();
 
 		/* Is this even a duplication machine inventory? */
-		if (!this.getMain().getInventories().containsKey(p))
+		if (!this.getMain().getInventories().containsKey(p)) {
 			return;
+		}
 
 		final Inventory inv = this.getMain().getInventories().get(p); // Get the duplication machine inventory.
+		final Inventory pInv = p.getInventory(); // Player inventory.
 
-		/* Adding items to the player's inventory. */
-		boolean onGround = false; // Will be used to send a message if the player's inventory is full.
-		for (ItemStack i : inv.getContents()) {
-			/* Is the item being looped air or null? */
-			if (i == null || i.getType() == Material.AIR) {
-				continue;
-			}
+		/*
+		 * Add items to the inventory as much as possible. If the item is not able to be
+		 * added it will be added in the map. If all items were added, the map will be
+		 * empty.
+		 * 
+		 * Filtering the map by ignoring all null items (possible empty slots)
+		 */
+		final Map<Integer, ItemStack> fallenItems = pInv.addItem(
+				Stream.of(inv.getContents()).filter(item -> item != null).toArray(size -> new ItemStack[size]));
 
-			/* Is the player's inventory full? Drop the item on the ground */
-			if (p.getInventory().firstEmpty() == -1) {
-				p.getWorld().dropItemNaturally(p.getLocation(), i);
-				/* Let's make sure we send a message to the player. */
-				onGround = true;
-			} else {
-				/* Inventory not full, let's add the item in the inventory. */
-				p.getInventory().addItem(i);
-			}
-		}
-
-		if (onGround) {
+		/* If map is not empty, some items were not added... Let's drop them. */
+		if (!fallenItems.isEmpty()) {
+			fallenItems.values().forEach(item -> p.getWorld().dropItemNaturally(p.getLocation(), item));
 			MessagesX.INVENTORY_FULL.msg(p);
 		}
+
+		p.updateInventory();
 
 		this.getMain().getInventories().remove(p);
 		this.getMain().getInventoriesId().remove(p);
 
-		/*
+		/**
 		 * Get all viewers of the current duplication machine inventory and close their
 		 * inventory
+		 * 
+		 * @see ViewerInterfere#onViewClose
 		 */
 		this.getMain().getViewers().entrySet().stream().filter(entr -> entr.getValue().equals(inv))
 				.map(entr -> entr.getKey()).forEach(Player::closeInventory);

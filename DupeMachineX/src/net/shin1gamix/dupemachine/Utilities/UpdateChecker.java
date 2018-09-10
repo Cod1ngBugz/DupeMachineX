@@ -60,36 +60,38 @@ public final class UpdateChecker {
 	 * 3.3) Not sure?
 	 */
 	public void checkForUpdate(final Player player) {
-		Bukkit.getScheduler().runTaskLaterAsynchronously(this.getCore(), () -> {
 
-			for (int i = 0; i < 4; i++) {
-				Ut.msg(player, "");
-			}
-
+		Bukkit.getScheduler().runTaskAsynchronously(this.getCore(), () -> {
 			try {
-				HttpsURLConnection connection = (HttpsURLConnection) new URL(
+				HttpsURLConnection connection =(HttpsURLConnection) new URL(
 						"https://api.spigotmc.org/legacy/update.php?resource=" + ID).openConnection();
 				connection.setRequestMethod("GET");
 				this.spigotVersion = new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine();
-
-				if (!this.getPluginVersion().equals(this.spigotVersion)) {
-					Ut.msg(player, "&7Hey " + player.getName() + ", it seems that &3DupeMachineX &ahas an");
-					Ut.msg(player, "&aupdate available&7, check it out in the &6&nlink&7 below!");
-					Ut.msg(player, "&9&lLink:&3 &n" + RESOURCE_LINK);
-					return;
-				}
-
-				Ut.msg(player, "&7Hey " + player.getName() + ", it seems that &3DupeMachineX &7is actually");
-				Ut.msg(player, "&7updated. Thank you for using the lastest version. &a:-)");
-
+				this.sendResult(player, this.getSpigotVersion());
 			} catch (IOException e) {
 				Ut.msg(player, "&7Hey " + player.getName() + ", it seems that &can error occurred");
 				Ut.msg(player, "&7while attempting to search an update for &3DupeMachineX");
 				Ut.msg(player, "&9&lLink:&3 &n" + RESOURCE_LINK);
 				e.printStackTrace();
-
 			}
 
+		});
+
+	}
+
+	private void sendResult(final Player player, final String spigotVers) {
+		Bukkit.getScheduler().runTaskLater(this.getCore(), () -> {
+			for (int i = 0; i < 4; i++) {
+				Ut.msg(player, "");
+			}
+			if (!this.getPluginVersion().equals(spigotVers)) {
+				Ut.msg(player, "&7Hey " + player.getName() + ", it seems that &3DupeMachineX &ahas an");
+				Ut.msg(player, "&aupdate available&7, check it out in the &6&nlink&7 below!");
+				Ut.msg(player, "&9&lLink:&3 &n" + RESOURCE_LINK);
+				return;
+			}
+			Ut.msg(player, "&7Hey " + player.getName() + ", it seems that &3DupeMachineX &7is actually");
+			Ut.msg(player, "&7updated. Thank you for using the lastest version. &a:-)");
 		}, 100l);
 	}
 

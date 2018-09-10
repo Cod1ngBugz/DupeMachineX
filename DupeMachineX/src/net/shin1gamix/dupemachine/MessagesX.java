@@ -31,9 +31,9 @@ public enum MessagesX {
 	MACHINE_NOT_EXIST("&cThe machine &e%machine% &cdoesn't seem to exist.","Messages.Machine-Not-Exist"), 
 	USER_ALREADY_NOT_IN_MACHINE("&cThe user &e%user% &cis already disallowed for the machine &e%machine%","Messages.User-Already-Not-In-Machine"), 
 	USER_ALREADY_IN_MACHINE("&cThe user &e%user% is already allowed for the machine %machine%","Messages.User-Already-In-Machine"),
-	RANK_ALREADY_NOT_IN_MACHINE("&cThe rank &e%rank% &cis already disallowed for the machine &e%machine%","Messages.User-Already-Not-In-Machine"),
+	RANK_ALREADY_NOT_IN_MACHINE("&cThe rank &e%rank% &cis already disallowed for the machine &e%machine%","Messages.Rank-Already-Not-In-Machine"),
 	RANK_ALREADY_IN_MACHINE("&cThe rank &e%rank% is already allowed for the machine %machine%","Messages.Rank-Already-In-Machine"), 
-	USER_ADDED_IN_MACHINE("&aThe user &d%user% &ahas been added in the &d%machine% &amachine.","Messages.Rank-Added-In-Machine"), 
+	USER_ADDED_IN_MACHINE("&aThe user &d%user% &ahas been added in the &d%machine% &amachine.","Messages.Users-Added-In-Machine"), 
 	USER_REMOVED_FROM_MACHINE("&cThe user &e%user% &chas been removed from the &e%machine% &cmachine.","Messages.User-Removed-From-Machine"), 
 	RANK_ADDED_IN_MACHINE("&aThe rank &d%rank% &ahas been added in the &d%machine% &amachine.","Messages.Rank-Added-In-Machine"), 
 	RANK_REMOVED_FROM_MACHINE("&cThe rank &e%rank% &chas been removed from the &e%machine% &cmachine.","Messages.Rank-Removed-From-Machine");

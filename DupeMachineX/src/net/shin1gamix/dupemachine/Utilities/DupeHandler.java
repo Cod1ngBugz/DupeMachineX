@@ -438,7 +438,9 @@ public final class DupeHandler {
 		itr = this.getCore().getInventories().keySet().iterator();
 		while (itr.hasNext()) {
 			final Player duper = itr.next();
-			MessagesX.PLUGIN_DISABLE.msg(duper);
+			if (!shutdown) {
+				MessagesX.PLUGIN_DISABLE.msg(duper);
+			}
 			this.getCore().getInventories().remove(duper);
 			duper.closeInventory();
 		}
@@ -447,7 +449,9 @@ public final class DupeHandler {
 		itr = this.getCore().getViewers().keySet().iterator();
 		while (itr.hasNext()) {
 			final Player viewer = itr.next();
-			MessagesX.PLUGIN_DISABLE.msg(viewer);
+			if (!shutdown) {
+				MessagesX.PLUGIN_DISABLE.msg(viewer);
+			}
 			this.getCore().getInventories().remove(viewer);
 			viewer.closeInventory();
 		}

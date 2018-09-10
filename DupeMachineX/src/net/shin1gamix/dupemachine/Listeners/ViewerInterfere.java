@@ -55,7 +55,7 @@ public class ViewerInterfere implements Listener {
 	 * @since 0.1
 	 */
 	@EventHandler
-	public void onViewClose(final InventoryCloseEvent e) {
+	private void onViewClose(final InventoryCloseEvent e) {
 		Player p = (Player) e.getPlayer();
 		if (!this.getMain().getViewers().containsKey(p)) {
 			return;
