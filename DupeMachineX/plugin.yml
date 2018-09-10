@@ -1,6 +1,6 @@
 name: DupeMachineX
 author: Shin1gamiX
-version: 0.9
+version: 1.0
 main: net.shin1gamix.dupemachine.Core
 website: https://github.com/Cod1ngBugz/DupeMachineX
 description: Allows you to duplicate items in a GUI.
