@@ -26,6 +26,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import net.shin1gamix.dupemachine.Core;
 import net.shin1gamix.dupemachine.MessagesX;
+import net.shin1gamix.dupemachine.Events.DupeMachineXItemDupeEvent;
 
 public final class DupeHandler {
 	/**
@@ -276,21 +277,13 @@ public final class DupeHandler {
 			return;
 		}
 
-		/* ItemStack checking */
-		for (final String loop : file.getConfigurationSection("Items").getKeys(false)) {
-			final ItemStack itemStack = file.getItemStack("Items." + loop);
-
-			/* Does the ItemStack already exist? */
-			if (itemStack.isSimilar(item)) {
-				MessagesX.ITEM_ALREADY_BANNED.msg(p);
-				return;
-			}
-
-			/* Does the ItemStack type already exist? */
-			if (itemStack.hasItemMeta() || itemStack.getType() != item.getType()) {
-				continue;
-			}
+		if (isTypeBlackListed(item)) {
 			MessagesX.ITEM_TYPE_ALREADY_BANNED.msg(p);
+			return;
+		}
+
+		if (isItemBlackListed(item)) {
+			MessagesX.ITEM_ALREADY_BANNED.msg(p);
 			return;
 		}
 
@@ -300,21 +293,43 @@ public final class DupeHandler {
 		MessagesX.ITEM_BLACKLISTED.msg(p, map);
 	}
 
+	public boolean isTypeBlackListed(final ItemStack item) {
+		final FileConfiguration file = this.getCore().getItembase().getFile();
+		for (final String loop : file.getConfigurationSection("Items").getKeys(false)) {
+			final ItemStack itemStack = file.getItemStack("Items." + loop);
+			if (itemStack.hasItemMeta() || itemStack.getType() != item.getType()) {
+				continue;
+			}
+			return true;
+		}
+		return false;
+	}
+
+	public boolean isItemBlackListed(final ItemStack item) {
+		final FileConfiguration file = this.getCore().getItembase().getFile();
+		for (final String loop : file.getConfigurationSection("Items").getKeys(false)) {
+			final ItemStack itemStack = file.getItemStack("Items." + loop);
+			if (itemStack.isSimilar(item)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * Creates new repeating tasks for each inventory retrieved from the
 	 * configuration folder. It plays a sound every time an item has been
 	 * successfully duplicated.
 	 * 
 	 * @see #playSound(Player)
+	 * @see DupeMachineXItemDupeEvent
 	 * @return Nothing
 	 * @since 0.1
 	 */
 	public void startTasks() {
 		final FileConfiguration machineFile = this.getCore().getMachines().getFile();
-		final FileConfiguration blacklist = this.getCore().getItembase().getFile();
 
 		for (final String id : machineFile.getConfigurationSection("Inventories").getKeys(false)) {
-
 			final int repeatTime = machineFile.getInt("Inventories." + id + ".dupe-ticks");
 			final int itemsPerTime = machineFile.getInt("Inventories." + id + ".items-per-dupe");
 
@@ -336,26 +351,31 @@ public final class DupeHandler {
 						boolean playSound = false;
 
 						dupeItemLoop: for (final ItemStack i : inv.getContents()) {
-
-							/* Is the item air? */
+							/* Is the item empty or air? */
 							if (i == null || i.getType() == Material.AIR) {
 								continue dupeItemLoop;
 							}
 
-							/* ItemStack checking */
-							for (final String loop : blacklist.getConfigurationSection("Items").getKeys(false)) {
-								final ItemStack itemStack = blacklist.getItemStack("Items." + loop);
+							/* True if the type or item is blacklisted */
+							final boolean isBlackListed = isItemBlackListed(i) || isTypeBlackListed(i);
 
-								/* Is the banned item a simple material? If so, block em all */
-								if (!itemStack.hasItemMeta() && itemStack.getType() == i.getType()) {
-									continue dupeItemLoop;
-								}
+							final DupeMachineXItemDupeEvent event = new DupeMachineXItemDupeEvent(player, i,
+									isBlackListed);
+							Bukkit.getPluginManager().callEvent(event);
 
-								/* Is the banned item similar to the item being duped? */
-								if (itemStack.isSimilar(i)) {
-									continue dupeItemLoop;
-								}
+							/* Is the item given null or air? */
+							if (event.getItem() == null || event.getItem().getType() == Material.AIR) {
+								continue dupeItemLoop;
+							}
 
+							/* Is the event cancelled? */
+							if (event.isCancelled()) {
+								continue dupeItemLoop;
+							}
+
+							/* Is the item ignoring the blacklist? */
+							if (!event.isBlackListIgnore()) {
+								continue dupeItemLoop;
 							}
 
 							/* Is the amount already full? If so, skip it. */
