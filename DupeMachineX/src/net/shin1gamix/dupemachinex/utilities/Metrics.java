@@ -1,4 +1,4 @@
-package net.shin1gamix.dupemachine.Utilities;
+package net.shin1gamix.dupemachinex.utilities;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;

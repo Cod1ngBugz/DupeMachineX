@@ -1,9 +1,9 @@
-package net.shin1gamix.dupemachine.Utilities;
+package net.shin1gamix.dupemachinex.utilities;
 
 import org.bukkit.plugin.RegisteredServiceProvider;
 
 import net.milkbowl.vault.permission.Permission;
-import net.shin1gamix.dupemachine.Core;
+import net.shin1gamix.dupemachinex.DupeMachineX;
 
 public class VaultSetup {
 
@@ -13,19 +13,13 @@ public class VaultSetup {
 	 * @return Core -> look above.
 	 * @since 0.1
 	 */
-	private Core main;
+	private final DupeMachineX main;
 
-	public VaultSetup(final Core main) {
+	public VaultSetup(final DupeMachineX main) {
 		this.main = main;
 	}
 
-	/**
-	 * @return the main
-	 */
-	public Core getMain() {
-		return this.main;
-	}
-
+	
 	public boolean isValid() {
 		return /* this.setupChat() && this.setupEconomy() && */ this.setupPermissions();
 	}
@@ -35,7 +29,7 @@ public class VaultSetup {
 	// private Chat chat = null;
 
 	private boolean setupPermissions() {
-		RegisteredServiceProvider<Permission> permissionProvider = this.getMain().getServer().getServicesManager()
+		RegisteredServiceProvider<Permission> permissionProvider = this.main.getServer().getServicesManager()
 				.getRegistration(net.milkbowl.vault.permission.Permission.class);
 		if (permissionProvider != null) {
 			permission = permissionProvider.getProvider();
@@ -60,7 +54,7 @@ public class VaultSetup {
 	 */
 
 	public Permission getPermission() {
-		return permission;
+		return this.permission;
 	}
 
 	/*

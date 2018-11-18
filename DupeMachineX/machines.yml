@@ -6,6 +6,7 @@
 # You'll basically be able to change some timers, modify the GUI etc. #
 #                                                                     #
 # default -> If no other inventory is met, default will be used.      #
+# Modes -> 1: Whitelist | 0: Blacklist
 #                                                                     #
 # ################################################################### #
 
@@ -16,6 +17,7 @@ Inventories:
     name: '&6-> &3DupeMachineX &6<-' # Gui's name
     items-per-dupe: 1 # every "dupe-ticks", this many amount(s) will be duped.
     dupe-ticks: 20 # 20 ticks is equal to 1 second
+    mode: 0
     viewable: true # Can others view this machine working?
   vip:
     priority : 2 # This can also be 0 but try not to go below that.
@@ -29,6 +31,7 @@ Inventories:
     name: '&e-> &2DupeMachineX &e<-'
     items-per-dupe: 2
     dupe-ticks: 10 # 20 ticks is equal to 1 second so 10 ticks are 0.5 seconds (faster than default)
+    mode: 0
     viewable: true
   for-gods:
     priority : 1
@@ -40,4 +43,5 @@ Inventories:
     name: '&cOh god ;-;'
     items-per-dupe: 64
     dupe-ticks: 40
+    mode: 0
     viewable: false

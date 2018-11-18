@@ -1,4 +1,4 @@
-package net.shin1gamix.dupemachine.Listeners;
+package net.shin1gamix.dupemachinex.listeners;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -7,7 +7,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 
-import net.shin1gamix.dupemachine.Core;
+import net.shin1gamix.dupemachinex.DupeMachineX;
 
 public class ViewerInterfere implements Listener {
 
@@ -17,18 +17,11 @@ public class ViewerInterfere implements Listener {
 	 * @return Core -> look above.
 	 * @since 0.1
 	 */
-	private Core main;
+	private final DupeMachineX core;
 
-	public ViewerInterfere(final Core main) {
-		this.main = main;
-		Bukkit.getPluginManager().registerEvents(this, main);
-	}
-
-	/**
-	 * @return the main
-	 */
-	public Core getMain() {
-		return this.main;
+	public ViewerInterfere(final DupeMachineX core) {
+		this.core = core;
+		Bukkit.getPluginManager().registerEvents(this, core);
 	}
 
 	/**
@@ -41,7 +34,7 @@ public class ViewerInterfere implements Listener {
 	@EventHandler(ignoreCancelled = true)
 	private void onInterfere(final InventoryClickEvent e) {
 		Player p = (Player) e.getWhoClicked();
-		if (!this.getMain().getViewers().containsKey(p)) {
+		if (!this.core.getViewers().containsKey(p)) {
 			return;
 		}
 		e.setCancelled(true);
@@ -57,10 +50,10 @@ public class ViewerInterfere implements Listener {
 	@EventHandler
 	private void onViewClose(final InventoryCloseEvent e) {
 		Player p = (Player) e.getPlayer();
-		if (!this.getMain().getViewers().containsKey(p)) {
+		if (!this.core.getViewers().containsKey(p)) {
 			return;
 		}
-		this.getMain().getViewers().remove(p);
+		this.core.getViewers().remove(p);
 	}
 
 }

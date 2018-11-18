@@ -1,12 +1,12 @@
-package net.shin1gamix.dupemachine.Commands;
+package net.shin1gamix.dupemachinex.commands;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import net.shin1gamix.dupemachine.Core;
-import net.shin1gamix.dupemachine.MessagesX;
+import net.shin1gamix.dupemachinex.DupeMachineX;
+import net.shin1gamix.dupemachinex.MessagesX;
 
 public class Duplication implements CommandExecutor {
 
@@ -16,18 +16,11 @@ public class Duplication implements CommandExecutor {
 	 * @return Core -> look above.
 	 * @since 0.1
 	 */
-	private Core core;
+	private final DupeMachineX core;
 
-	public Duplication(final Core core) {
+	public Duplication(final DupeMachineX core) {
 		this.core = core;
 		core.getCommand("dupemachinex").setExecutor(this);
-	}
-
-	/**
-	 * @return the core
-	 */
-	public Core getCore() {
-		return this.core;
 	}
 
 	@Override
@@ -44,7 +37,7 @@ public class Duplication implements CommandExecutor {
 			if (!p.hasPermission("dupemachinex.use")) {
 				MessagesX.NO_PERMISSION.msg(p);
 			} else {
-				this.getCore().getDupeHandler().openMachine(p);
+				this.core.getDupeHandler().openMachine(p);
 			}
 			return true;
 
@@ -64,7 +57,7 @@ public class Duplication implements CommandExecutor {
 				if (!cs.hasPermission("dupemachinex.reload")) {
 					MessagesX.NO_PERMISSION.msg(cs);
 				} else {
-					this.getCore().getDupeHandler().reloadPlugin(cs);
+					this.core.getDupeHandler().reloadPlugin(cs);
 				}
 				return true;
 
@@ -73,11 +66,12 @@ public class Duplication implements CommandExecutor {
 				if (!(cs instanceof Player)) {
 					return true;
 				}
+
 				p = (Player) cs;
 				if (!p.hasPermission("dupemachinex.view")) {
 					MessagesX.NO_PERMISSION.msg(p);
 				} else {
-					this.getCore().getDupeHandler().openOther(p, args[0]);
+					this.core.getDupeHandler().openOtherMachine(p, args[0]);
 				}
 
 			}
@@ -87,7 +81,7 @@ public class Duplication implements CommandExecutor {
 		case 2:
 
 			switch (args[0].toLowerCase()) {
-			case "add":
+			case "blacklist":
 				if (!(cs instanceof Player)) {
 					return true;
 				}
@@ -96,17 +90,36 @@ public class Duplication implements CommandExecutor {
 				if (!p.hasPermission("dupemachinex.blacklist")) {
 					MessagesX.NO_PERMISSION.msg(p);
 				} else {
-					this.getCore().getDupeHandler().addBannedItem(p, args[1].toLowerCase());
+					this.core.getDupeHandler().addBlacklistItem(p, args[1].toLowerCase());
 				}
 				return true;
-			case "remove":
-
+			case "unblacklist":
 				if (!cs.hasPermission("dupemachinex.unblacklist")) {
 					MessagesX.NO_PERMISSION.msg(cs);
 				} else {
-					this.getCore().getDupeHandler().removeBannedItem(cs, args[1].toLowerCase());
+					this.core.getDupeHandler().removeBlacklistItem(cs, args[1].toLowerCase());
 				}
 				return true;
+			case "whitelist":
+				
+				if (!(cs instanceof Player)) {
+					return true;
+				}
+				p = (Player) cs;
+				if (!p.hasPermission("dupemachinex.whitelist")) {
+					MessagesX.NO_PERMISSION.msg(p);
+				} else {
+					this.core.getDupeHandler().addWhitelistItem(p, args[1].toLowerCase());
+				}
+				return true;
+			case "unwhitelist":
+				if (!cs.hasPermission("dupemachinex.unwhitelist")) {
+					MessagesX.NO_PERMISSION.msg(cs);
+				} else {
+					this.core.getDupeHandler().removeWhitelistItem(cs, args[1].toLowerCase());
+				}
+				return true;
+
 			}
 
 		case 3:
@@ -129,28 +142,28 @@ public class Duplication implements CommandExecutor {
 			if (!p.hasPermission("dupemachinex.allow.player")) {
 				MessagesX.NO_PERMISSION.msg(p);
 			} else {
-				this.getCore().getDupeHandler().allowPlayer(p, first, machineName);
+				this.core.getDupeHandler().allowPlayer(p, first, machineName);
 			}
 			return true;
 		} else if (args[0].equalsIgnoreCase("disallowplayer")) {
 			if (!p.hasPermission("dupemachinex.disallow.player")) {
 				MessagesX.NO_PERMISSION.msg(p);
 			} else {
-				this.getCore().getDupeHandler().disAllowPlayer(p, first, machineName);
+				this.core.getDupeHandler().disAllowPlayer(p, first, machineName);
 			}
 			return true;
 		} else if (args[0].equalsIgnoreCase("allowrank")) {
 			if (!p.hasPermission("dupemachinex.allow.rank")) {
 				MessagesX.NO_PERMISSION.msg(p);
 			} else {
-				this.getCore().getDupeHandler().allowRank(p, first, machineName);
+				this.core.getDupeHandler().allowRank(p, first, machineName);
 			}
 			return true;
 		} else if (args[0].equalsIgnoreCase("disallowrank")) {
 			if (!p.hasPermission("dupemachinex.disallow.rank")) {
 				MessagesX.NO_PERMISSION.msg(p);
 			} else {
-				this.getCore().getDupeHandler().disAllowRank(p, first, machineName);
+				this.core.getDupeHandler().disAllowRank(p, first, machineName);
 			}
 			return true;
 		}

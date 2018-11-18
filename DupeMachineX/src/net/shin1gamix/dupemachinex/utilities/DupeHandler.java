@@ -1,4 +1,4 @@
-package net.shin1gamix.dupemachine.Utilities;
+package net.shin1gamix.dupemachinex.utilities;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,16 +17,16 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import net.shin1gamix.dupemachine.Core;
-import net.shin1gamix.dupemachine.MessagesX;
-import net.shin1gamix.dupemachine.Events.DupeMachineXItemDupeEvent;
+import net.shin1gamix.dupemachinex.DupeMachineX;
+import net.shin1gamix.dupemachinex.MessagesX;
+import net.shin1gamix.dupemachinex.events.DupeMachineXItemDupeEvent;
 
 public final class DupeHandler {
 	/**
@@ -35,14 +35,10 @@ public final class DupeHandler {
 	 * @return Core -> look above.
 	 * @since 0.1
 	 */
-	private Core core;
+	private final DupeMachineX core;
 
-	public DupeHandler(final Core core) {
+	public DupeHandler(final DupeMachineX core) {
 		this.core = core;
-	}
-
-	public Core getCore() {
-		return this.core;
 	}
 
 	/**
@@ -53,13 +49,13 @@ public final class DupeHandler {
 	 *            The player to retrieve the machine from.
 	 * @see #getAllMachines(boolean, boolean)
 	 * @see #getAllUsers(String, boolean)
-	 * @see #getAllRanks(String, boolean)
+	 * @see #getAllAllowedRanks(String, boolean)
 	 * @return String or null if default -> The name of the machine.
 	 * @since 0.1
 	 */
-	public String getMachine(Player p) {
+	public String getMachine(final Player p) {
 
-		final FileConfiguration machineFile = this.getCore().getMachines().getFile();
+		final FileConfiguration machineFile = this.core.getMachines().getFile();
 
 		final Set<String> allMachines = this.getAllMachines(false, false);
 
@@ -91,15 +87,15 @@ public final class DupeHandler {
 
 			/* Not default, is the player allowed by name? */
 			if (machineFile.contains(path + "allowed-users")) {
-				allowedList = this.getAllUsers(key, true);
+				allowedList = this.getAllAllowedUsers(key, true);
 				if (allowedList.contains(p.getName().toLowerCase())) {
 					return key; // Found a match by name.
 				}
 			}
 
 			/* Is the player's rank allowed? */
-			final String playerRank = this.getCore().getVault().getPermission().getPrimaryGroup(p).toLowerCase();
-			allowedList = this.getAllRanks(key, true);
+			final String playerRank = this.core.getVault().getPermission().getPrimaryGroup(p).toLowerCase();
+			allowedList = this.getAllAllowedRanks(key, true);
 			if (allowedList.contains(playerRank)) {
 				return key;
 			}
@@ -120,30 +116,35 @@ public final class DupeHandler {
 	public void openMachine(final Player p) {
 
 		/* Is the duplication machine already opened? */
-		if (this.getCore().getInventories().containsKey(p)) {
+		if (this.core.getInventories().containsKey(p)) {
+			Utils.debug("&3&lDupeMachineX > &6&l" + p.getName()
+					+ " &7attempted to open a duplication machine while having one already open!");
 			return;
 		}
 
-		if (this.getCore().getInventoriesId().containsKey(p)) {
-			this.getCore().getInventoriesId().remove(p);
+		if (this.core.getInventoriesId().containsKey(p)) {
+			this.core.getInventoriesId().remove(p);
 		}
 
-		final FileConfiguration machineFile = this.getCore().getMachines().getFile();
+		final FileConfiguration machineFile = this.core.getMachines().getFile();
+
+		/* key -> default or the machine's name | this is a no null value. */
 		final String key = this.getMachine(p);
-		final String path = "Inventories." + key + ".";
-		final int rows = machineFile.getInt(path + "rows");
+
+		final ConfigurationSection sect = machineFile.getConfigurationSection("Inventories." + key);
+		final int rows = sect.getInt("rows");
 
 		/* Let's make sure the rows are between 1 and 6 */
 		final Inventory inv = Bukkit.createInventory(null, rows > 6 || rows < 1 ? 1 * 9 : rows * 9,
-				Ut.tr(machineFile.getString(path + "name")));
+				Utils.colorize(sect.getString("name")));
 
 		p.openInventory(inv);
-		this.getCore().getInventories().put(p, inv);
-		this.getCore().getInventoriesId().put(p, key);
+		this.core.getInventories().put(p, inv);
+		this.core.getInventoriesId().put(p, key);
 
 		/* Inform operators that someone used the dupe command. */
 		// Bukkit.getOnlinePlayers().stream().filter(Player::isOp).forEach(op ->
-		// Ut.msg(op, "&3&l" + p.getName() + " &7&lused &6&l/dupe"));
+		// Utils.msg(op, "&3&l" + p.getName() + " &7&lused &6&l/dupe"));
 
 	}
 
@@ -157,9 +158,10 @@ public final class DupeHandler {
 	 * @return Nothing
 	 * @since 0.1
 	 */
-	public void openOther(final Player p, final String targetStr) {
-		if (this.getCore().getViewers().containsKey(p)) {
-			this.getCore().getViewers().remove(p);
+	public void openOtherMachine(final Player p, final String targetStr) {
+		/* Is the player attempting to open a different machine, a viewer? */
+		if (this.core.getViewers().containsKey(p)) {
+			this.core.getViewers().remove(p);
 			p.closeInventory();
 		}
 
@@ -170,7 +172,7 @@ public final class DupeHandler {
 
 		/* Is the target online? */
 		if (target == null) {
-			MessagesX.TARGET_OFFLINE.msg(p, map);
+			MessagesX.TARGET_OFFLINE.msg(p, map, false);
 			return;
 		}
 
@@ -181,25 +183,25 @@ public final class DupeHandler {
 
 		final String machine = this.getMachine(target);
 
-		final FileConfiguration machineFile = this.getCore().getMachines().getFile();
+		final FileConfiguration machineFile = this.core.getMachines().getFile();
 		final boolean viewable = machineFile.getBoolean("Inventories." + machine + ".viewable");
 		/* Is the machine viewable? */
 		if (!viewable) {
 			map.put("%machine%", machine);
-			MessagesX.UNVIEWABLE.msg(p, map);
+			MessagesX.UNVIEWABLE.msg(p, map, false);
 			return;
 		}
 
 		/* Is the machine of the target opened? */
-		if (!this.getCore().getInventories().containsKey(target)) {
-			MessagesX.TARGET_INVENTORY_CLOSED.msg(p, map);
+		if (!this.core.getInventories().containsKey(target)) {
+			MessagesX.TARGET_INVENTORY_CLOSED.msg(p, map, false);
 			return;
 		}
 
 		/* Open the dupe machine for the viewer */
-		final Inventory inv = this.getCore().getInventories().get(target);
+		final Inventory inv = this.core.getInventories().get(target);
 		p.openInventory(inv);
-		this.getCore().getViewers().put(p, inv);
+		this.core.getViewers().put(p, inv);
 
 	}
 
@@ -213,26 +215,59 @@ public final class DupeHandler {
 	 * @return Nothing
 	 * @since 0.1
 	 */
-	public void removeBannedItem(final CommandSender p, final String id) {
+	public void removeBlacklistItem(final CommandSender p, final String id) {
 		final Map<String, String> map = new HashMap<>();
 		map.put("%id%", id);
 
-		if (!Ut.isAllowed(id)) {
-			MessagesX.ITEM_NAME_INVALID.msg(p, map);
+		if (!Utils.isStringLegal(id, true)) {
+			MessagesX.ITEM_NAME_INVALID.msg(p, map, false);
 			return;
 		}
 
-		final FileConfiguration file = this.getCore().getItembase().getFile();
+		final FileConfiguration file = this.core.getBlackList().getFile();
 
 		/* Does the ID exist? */
 		if (!file.contains("Items." + id)) {
-			MessagesX.ID_NOT_EXIST.msg(p, map);
+			MessagesX.ID_NOT_EXIST.msg(p, map, false);
 			return;
 		}
 
 		file.set("Items." + id, null);
-		this.getCore().getItembase().saveConfig();
-		MessagesX.ITEM_UNBLACKLISTED.msg(p, map);
+		this.core.getBlackList().saveFile();
+		MessagesX.ITEM_UNBLACKLISTED.msg(p, map, false);
+
+	}
+
+	/**
+	 * Removes an {@code id} from the blacklist.
+	 * 
+	 * @param p
+	 *            The player unblacklisting the item.
+	 * @param id
+	 *            The id of the blacklisted item.
+	 * @return Nothing
+	 * @since 0.1
+	 */
+	public void removeWhitelistItem(final CommandSender p, final String id) {
+		final Map<String, String> map = new HashMap<>();
+		map.put("%id%", id);
+
+		if (!Utils.isStringLegal(id, true)) {
+			MessagesX.ITEM_NAME_INVALID.msg(p, map, false);
+			return;
+		}
+
+		final FileConfiguration file = this.core.getWhiteList().getFile();
+
+		/* Does the ID exist? */
+		if (!file.contains("Items." + id)) {
+			MessagesX.ID_NOT_EXIST.msg(p, map, false);
+			return;
+		}
+
+		file.set("Items." + id, null);
+		this.core.getWhiteList().saveFile();
+		// TODO whitelisted
 
 	}
 
@@ -248,13 +283,8 @@ public final class DupeHandler {
 	 * @return Nothing
 	 * @since 0.1
 	 */
-	public void addBannedItem(final Player p, final String id) {
-		final ItemStack item;
-		if (Bukkit.getVersion().contains("1.8")) {
-			item = p.getItemInHand();
-		} else {
-			item = p.getInventory().getItemInMainHand();
-		}
+	public void addBlacklistItem(final Player p, final String id) {
+		final ItemStack item = Utils.getMainItem(p);
 
 		if (item == null || item.getType() == Material.AIR) {
 			MessagesX.NO_ITEM_IN_HAND.msg(p);
@@ -264,16 +294,16 @@ public final class DupeHandler {
 		final Map<String, String> map = new HashMap<>();
 		map.put("%id%", id);
 
-		if (!Ut.isAllowed(id)) {
-			MessagesX.ITEM_NAME_INVALID.msg(p, map);
+		if (!Utils.isStringLegal(id, true)) {
+			MessagesX.ITEM_NAME_INVALID.msg(p, map, false);
 			return;
 		}
 
-		final FileConfiguration file = this.getCore().getItembase().getFile();
+		final FileConfiguration file = this.core.getBlackList().getFile();
 
 		/* Does the ID already exist? */
 		if (file.contains("Items." + id)) {
-			MessagesX.ID_ALREADY_EXIST.msg(p, map);
+			MessagesX.ID_ALREADY_EXIST.msg(p, map, false);
 			return;
 		}
 
@@ -288,13 +318,65 @@ public final class DupeHandler {
 		}
 
 		file.set("Items." + id, item);
-		this.getCore().getItembase().saveConfig();
+		this.core.getBlackList().saveFile();
 		map.put("%item%", item.getType().name().toLowerCase().replace("_", " "));
-		MessagesX.ITEM_BLACKLISTED.msg(p, map);
+		MessagesX.ITEM_BLACKLISTED.msg(p, map, false);
+	}
+
+	/**
+	 * Adds an {@code item} to the blacklist.
+	 * 
+	 * @param p
+	 *            The player blacklisting the item.
+	 * @param id
+	 *            The id of the blacklisted item.
+	 * @param item
+	 *            The item being blacklisted.
+	 * @return Nothing
+	 * @since 0.1
+	 */
+	public void addWhitelistItem(final Player p, final String id) {
+		final ItemStack item = Utils.getMainItem(p);
+
+		if (item == null || item.getType() == Material.AIR) {
+			MessagesX.NO_ITEM_IN_HAND.msg(p);
+			return;
+		}
+
+		final Map<String, String> map = new HashMap<>();
+		map.put("%id%", id);
+
+		if (!Utils.isStringLegal(id, true)) {
+			MessagesX.ITEM_NAME_INVALID.msg(p, map, false);
+			return;
+		}
+
+		final FileConfiguration file = this.core.getWhiteList().getFile();
+
+		/* Does the ID already exist? */
+		if (file.contains("Items." + id)) {
+			MessagesX.ID_ALREADY_EXIST.msg(p, map, false);
+			return;
+		}
+
+		if (isTypeWhitelisted(item)) {
+			MessagesX.ITEM_TYPE_ALREADY_BANNED.msg(p);
+			return;
+		}
+
+		if (isItemWhitelisted(item)) {
+			MessagesX.ITEM_ALREADY_BANNED.msg(p);
+			return;
+		}
+
+		file.set("Items." + id, item);
+		this.core.getWhiteList().saveFile();
+		map.put("%item%", item.getType().name().toLowerCase().replace("_", " "));
+		MessagesX.ITEM_BLACKLISTED.msg(p, map, false);
 	}
 
 	public boolean isTypeBlackListed(final ItemStack item) {
-		final FileConfiguration file = this.getCore().getItembase().getFile();
+		final FileConfiguration file = this.core.getBlackList().getFile();
 		for (final String loop : file.getConfigurationSection("Items").getKeys(false)) {
 			final ItemStack itemStack = file.getItemStack("Items." + loop);
 			if (itemStack.hasItemMeta() || itemStack.getType() != item.getType()) {
@@ -306,10 +388,33 @@ public final class DupeHandler {
 	}
 
 	public boolean isItemBlackListed(final ItemStack item) {
-		final FileConfiguration file = this.getCore().getItembase().getFile();
+		final FileConfiguration file = this.core.getBlackList().getFile();
 		for (final String loop : file.getConfigurationSection("Items").getKeys(false)) {
 			final ItemStack itemStack = file.getItemStack("Items." + loop);
 			if (itemStack.isSimilar(item)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean isTypeWhitelisted(final ItemStack item) {
+		final FileConfiguration file = this.core.getWhiteList().getFile();
+		for (final String loop : file.getConfigurationSection("Items").getKeys(false)) {
+			final ItemStack itemStack = file.getItemStack("Items." + loop);
+			if (itemStack.hasItemMeta() || itemStack.getType() != item.getType()) {
+				continue;
+			}
+			return true;
+		}
+		return false;
+	}
+
+	public boolean isItemWhitelisted(final ItemStack item) {
+		final FileConfiguration file = this.core.getWhiteList().getFile();
+		for (final String loop : file.getConfigurationSection("Items").getKeys(false)) {
+			final ItemStack itemStack = file.getItemStack("Items." + loop);
+			if (Utils.isSimilar(itemStack, item, false)) {
 				return true;
 			}
 		}
@@ -326,23 +431,23 @@ public final class DupeHandler {
 	 * @return Nothing
 	 * @since 0.1
 	 */
-	public void startTasks() {
-		final FileConfiguration machineFile = this.getCore().getMachines().getFile();
 
+	public void startTasks() {
+		final FileConfiguration machineFile = this.core.getMachines().getFile();
 		for (final String id : machineFile.getConfigurationSection("Inventories").getKeys(false)) {
 			final int repeatTime = machineFile.getInt("Inventories." + id + ".dupe-ticks");
 			final int itemsPerTime = machineFile.getInt("Inventories." + id + ".items-per-dupe");
-
-			this.getCore().getTasks().add(new BukkitRunnable() {
+			final int mode = machineFile.getInt("Inventories." + id + ".mode");
+			this.core.getTasks().add(new BukkitRunnable() {
 				@Override
 				public void run() {
 
-					playerInvs: for (final Entry<Player, Inventory> invs : getCore().getInventories().entrySet()) {
+					playerInvs: for (final Entry<Player, Inventory> invs : core.getInventories().entrySet()) {
 
 						final Player player = invs.getKey();
 
 						/* Is the current task being run for the correct inventory? */
-						if (!getCore().getInventoriesId().get(player).equalsIgnoreCase(id)) {
+						if (!core.getInventoriesId().get(player).equalsIgnoreCase(id)) {
 							continue playerInvs;
 						}
 
@@ -357,10 +462,11 @@ public final class DupeHandler {
 							}
 
 							/* True if the type or item is blacklisted */
-							final boolean isBlackListed = isItemBlackListed(i) || isTypeBlackListed(i);
+							final boolean isBlacklisted = isItemBlackListed(i) || isTypeBlackListed(i);
+							final boolean isWhitelisted = isItemWhitelisted(i) || isTypeWhitelisted(i);
 
 							final DupeMachineXItemDupeEvent event = new DupeMachineXItemDupeEvent(player, i,
-									isBlackListed);
+									isBlacklisted, isWhitelisted, mode);
 							Bukkit.getPluginManager().callEvent(event);
 
 							/* Is the item given null or air? */
@@ -373,9 +479,20 @@ public final class DupeHandler {
 								continue dupeItemLoop;
 							}
 
-							/* Is the item ignoring the blacklist? */
-							if (!event.isBlackListIgnore()) {
-								continue dupeItemLoop;
+							if (event.getMode() == 1) {
+
+								/* Is the item not whitelisted? */
+								if (!event.isWhiteListed()) {
+									continue dupeItemLoop;
+								}
+
+							} else {
+
+								/* Is the item blacklisted? */
+								if (event.isBlackListed()) {
+									continue dupeItemLoop;
+								}
+
 							}
 
 							/* Is the amount already full? If so, skip it. */
@@ -410,7 +527,7 @@ public final class DupeHandler {
 
 				}
 				/* Incase the amount is set to 0, we don't want sh!t to go crazy... */
-			}.runTaskTimerAsynchronously(this.getCore(), 0, repeatTime < 1 ? 1l : repeatTime));
+			}.runTaskTimerAsynchronously(this.core, 0, repeatTime < 1 ? 1l : repeatTime));
 
 		}
 	}
@@ -420,7 +537,7 @@ public final class DupeHandler {
 	 * 
 	 * @param player
 	 *            The player to receive the sound.
-	 * @see Entity#playSound(Location, Sound, volume, pitch)
+	 * @see Player#playSound(Location, String, float, float)
 	 * @return Nothing
 	 * @since 0.1
 	 */
@@ -446,33 +563,39 @@ public final class DupeHandler {
 	 * @return Nothing
 	 * @since 0.1
 	 */
-	public void disableFunction(final boolean shutdown) {
-
-		this.getCore().getTasks().forEach(task -> task.cancel()); // Cancel duplication tasks
-		this.getCore().getTasks().clear();
-		this.getCore().getInventoriesId().clear();
+	public void disableFunction() {
+		this.core.getTasks().forEach(task -> task.cancel()); // Cancel duplication tasks
+		this.core.getTasks().clear();
+		this.core.getInventoriesId().clear();
 
 		Iterator<Player> itr;
 
 		/* The plugin is being disabled, close all inventories and send a message */
-		itr = this.getCore().getInventories().keySet().iterator();
+		itr = this.core.getInventories().keySet().iterator();
+		/* Start with the duplicators. */
 		while (itr.hasNext()) {
 			final Player duper = itr.next();
-			if (!shutdown) {
-				MessagesX.PLUGIN_DISABLE.msg(duper);
+			MessagesX.PLUGIN_DISABLE.msg(duper);
+
+			final Map<Integer, ItemStack> items = Utils.addItems(duper.getInventory(),
+					this.core.getInventories().get(duper).getContents());
+
+			if (!items.isEmpty()) {
+				items.values().forEach(item -> duper.getWorld().dropItemNaturally(duper.getLocation(), item));
+				MessagesX.INVENTORY_FULL.msg(duper);
+				duper.updateInventory();
 			}
-			this.getCore().getInventories().remove(duper);
+
+			this.core.getInventories().remove(duper);
 			duper.closeInventory();
 		}
 
 		/* Removing all viewers from map and closing their inventory. */
-		itr = this.getCore().getViewers().keySet().iterator();
+		itr = this.core.getViewers().keySet().iterator();
 		while (itr.hasNext()) {
 			final Player viewer = itr.next();
-			if (!shutdown) {
-				MessagesX.PLUGIN_DISABLE.msg(viewer);
-			}
-			this.getCore().getInventories().remove(viewer);
+			MessagesX.PLUGIN_DISABLE.msg(viewer);
+			this.core.getViewers().remove(viewer);
 			viewer.closeInventory();
 		}
 	}
@@ -489,7 +612,7 @@ public final class DupeHandler {
 	 * @since 0.1
 	 */
 	public Set<String> getAllMachines(final boolean defaultToo, final boolean lowCase) {
-		final FileConfiguration machineFile = this.getCore().getMachines().getFile();
+		final FileConfiguration machineFile = this.core.getMachines().getFile();
 		return new HashSet<>(machineFile.getConfigurationSection("Inventories").getKeys(false).stream()
 				.filter(str -> defaultToo ? true : !str.equalsIgnoreCase("default"))
 				.map(str -> lowCase ? str.toLowerCase() : str).collect(Collectors.toSet()));
@@ -505,11 +628,11 @@ public final class DupeHandler {
 	 * @return Set<String>
 	 * @since 0.1
 	 */
-	public Set<String> getAllUsers(final String machine, final boolean lowCase) {
+	public Set<String> getAllAllowedUsers(final String machine, final boolean lowCase) {
 		if (machine == null) {
 			return new HashSet<>();
 		}
-		final FileConfiguration machineFile = this.getCore().getMachines().getFile();
+		final FileConfiguration machineFile = this.core.getMachines().getFile();
 		if (!machineFile.contains("Inventories." + machine + ".allowed-users")) {
 			return new HashSet<>();
 		}
@@ -527,11 +650,11 @@ public final class DupeHandler {
 	 * @return Set<String>
 	 * @since 0.1
 	 */
-	public Set<String> getAllRanks(final String machine, final boolean lowCase) {
+	public Set<String> getAllAllowedRanks(final String machine, final boolean lowCase) {
 		if (machine == null) {
 			return new HashSet<>();
 		}
-		final FileConfiguration machineFile = this.getCore().getMachines().getFile();
+		final FileConfiguration machineFile = this.core.getMachines().getFile();
 
 		if (!machineFile.contains("Inventories." + machine + ".allowed-ranks")) {
 			return new HashSet<>();
@@ -587,24 +710,24 @@ public final class DupeHandler {
 		final String machine = this.getMachineNameIgnoreCase(false, machineName);
 		/* None found, most likely */
 		if (machine == null) {
-			MessagesX.MACHINE_NOT_EXIST.msg(cs, map);
+			MessagesX.MACHINE_NOT_EXIST.msg(cs, map, false);
 			return;
 		}
 
 		/* Does the machine already allows for that user? */
-		final Set<String> allUsers = this.getAllUsers(machine, true);
+		final Set<String> allUsers = this.getAllAllowedUsers(machine, true);
 		if (!allUsers.isEmpty() && allUsers.contains(playerName)) {
-			MessagesX.USER_ALREADY_IN_MACHINE.msg(cs, map);
+			MessagesX.USER_ALREADY_IN_MACHINE.msg(cs, map, false);
 			return;
 		}
 
-		final FileConfiguration machineList = this.getCore().getMachines().getFile();
+		final FileConfiguration machineList = this.core.getMachines().getFile();
 		final List<String> machineUsers = machineList.getStringList("Inventories." + machine + ".allowed-users");
 		machineUsers.add(playerName);
 
 		machineList.set("Inventories." + machine + ".allowed-users", machineUsers);
-		this.getCore().getMachines().saveConfig();
-		MessagesX.USER_ADDED_IN_MACHINE.msg(cs, map);
+		this.core.getMachines().saveFile();
+		MessagesX.USER_ADDED_IN_MACHINE.msg(cs, map, false);
 	}
 
 	/**
@@ -640,24 +763,24 @@ public final class DupeHandler {
 		final String machine = this.getMachineNameIgnoreCase(false, machineName);
 		/* None found, most likely */
 		if (machine == null) {
-			MessagesX.MACHINE_NOT_EXIST.msg(cs, map);
+			MessagesX.MACHINE_NOT_EXIST.msg(cs, map, false);
 			return;
 		}
 
-		final Set<String> allUsers = this.getAllUsers(machine, true);
+		final Set<String> allUsers = this.getAllAllowedUsers(machine, true);
 		/* Does the machine already disallows for that user? */
 		if (allUsers.isEmpty() || !allUsers.contains(playerName)) {
-			MessagesX.USER_ALREADY_NOT_IN_MACHINE.msg(cs, map);
+			MessagesX.USER_ALREADY_NOT_IN_MACHINE.msg(cs, map, false);
 			return;
 		}
 
-		final FileConfiguration machineList = this.getCore().getMachines().getFile();
+		final FileConfiguration machineList = this.core.getMachines().getFile();
 		final List<String> users = machineList.getStringList("Inventories." + machine + ".allowed-users");
 		users.remove(playerName);
 
 		machineList.set("Inventories." + machine + ".allowed-users", users);
-		this.getCore().getMachines().saveConfig();
-		MessagesX.USER_REMOVED_FROM_MACHINE.msg(cs, map);
+		this.core.getMachines().saveFile();
+		MessagesX.USER_REMOVED_FROM_MACHINE.msg(cs, map, false);
 	}
 
 	/**
@@ -673,10 +796,12 @@ public final class DupeHandler {
 	 * @since 0.1
 	 */
 	public void reloadPlugin(final CommandSender target) {
-		this.disableFunction(false);
-		this.getCore().getCFG().reloadFile();
-		this.getCore().getItembase().reloadFile();
-		this.getCore().getMachines().reloadFile();
+		this.disableFunction();
+		this.core.getMessages().reloadFile();
+		MessagesX.repairPaths(this.core.getMessages());
+		this.core.getWhiteList().reloadFile();
+		this.core.getBlackList().reloadFile();
+		this.core.getMachines().reloadFile();
 		this.repairMachines();
 		this.startTasks();
 		MessagesX.PLUGIN_RELOADED.msg(target);
@@ -692,7 +817,7 @@ public final class DupeHandler {
 	 * @param machineName
 	 *            The machine's "id".
 	 * @see #getMachineNameIgnoreCase(String)
-	 * @see #getAllRanks(String, boolean)
+	 * @see #getAllAllowedRanks(String, boolean)
 	 * @return Nothing
 	 * @since 0.1
 	 */
@@ -713,24 +838,24 @@ public final class DupeHandler {
 		final String machine = this.getMachineNameIgnoreCase(false, machineName);
 		/* None found, most likely */
 		if (machine == null) {
-			MessagesX.MACHINE_NOT_EXIST.msg(cs, map);
+			MessagesX.MACHINE_NOT_EXIST.msg(cs, map, false);
 			return;
 		}
 
-		final Set<String> ranksLow = this.getAllRanks(machine, true);
+		final Set<String> ranksLow = this.getAllAllowedRanks(machine, true);
 		/* Does the machine already disallows for that user? */
 		if (!ranksLow.isEmpty() && ranksLow.contains(rankName)) {
-			MessagesX.RANK_ALREADY_NOT_IN_MACHINE.msg(cs, map);
+			MessagesX.RANK_ALREADY_NOT_IN_MACHINE.msg(cs, map, false);
 			return;
 		}
 
-		final FileConfiguration machineList = this.getCore().getMachines().getFile();
+		final FileConfiguration machineList = this.core.getMachines().getFile();
 		final List<String> ranks = machineList.getStringList("Inventories." + machine + ".allowed-ranks");
 		ranks.remove(rankName);
 
 		machineList.set("Inventories." + machine + ".allowed-ranks", ranks);
-		this.getCore().getMachines().saveConfig();
-		MessagesX.RANK_REMOVED_FROM_MACHINE.msg(cs, map);
+		this.core.getMachines().saveFile();
+		MessagesX.RANK_REMOVED_FROM_MACHINE.msg(cs, map, false);
 	}
 
 	/**
@@ -741,7 +866,7 @@ public final class DupeHandler {
 	 * @since 0.1
 	 */
 	public void repairMachines() {
-		final FileConfiguration machineList = this.getCore().getMachines().getFile();
+		final FileConfiguration machineList = this.core.getMachines().getFile();
 		final Set<String> machines = this.getAllMachines(false, false);
 
 		for (final String mach : machines) {
@@ -754,7 +879,7 @@ public final class DupeHandler {
 			final String dupeTicks = "Inventories." + mach + ".dupe-ticks";
 			final String viewable = "Inventories." + mach + ".viewable";
 			if (!machineList.contains(priority)) {
-				machineList.set(priority, Ut.getRandomInt(100, 500));
+				machineList.set(priority, Utils.getRandomInt(100, 500));
 			}
 			if (!machineList.contains(allowedRanks)) {
 				machineList.set(allowedRanks, new ArrayList<String>());
@@ -778,7 +903,7 @@ public final class DupeHandler {
 				machineList.set(viewable, true);
 			}
 		}
-		this.getCore().getMachines().saveConfig();
+		this.core.getMachines().saveFile();
 
 	}
 
@@ -792,7 +917,7 @@ public final class DupeHandler {
 	 * @param machineName
 	 *            The machine's "id".
 	 * @see #getMachineNameIgnoreCase(String)
-	 * @see #getAllRanks(String, boolean)
+	 * @see #getAllAllowedRanks(String, boolean)
 	 * @return Nothing
 	 * @since 0.1
 	 */
@@ -815,25 +940,30 @@ public final class DupeHandler {
 		final String machine = this.getMachineNameIgnoreCase(false, machineName);
 		/* None found, most likely */
 		if (machine == null) {
-			MessagesX.MACHINE_NOT_EXIST.msg(cs, map);
+			MessagesX.MACHINE_NOT_EXIST.msg(cs, map, false);
 			return;
 		}
 
-		final Set<String> ranksLow = this.getAllRanks(machine, true);
+		final Set<String> ranksLow = this.getAllAllowedRanks(machine, true);
 		/* Does the machine already allows for that rank? */
 		if (!ranksLow.isEmpty() && ranksLow.contains(rankName)) {
-			MessagesX.RANK_ALREADY_IN_MACHINE.msg(cs, map);
+			MessagesX.RANK_ALREADY_IN_MACHINE.msg(cs, map, false);
 			return;
 		}
 
-		final FileConfiguration machineList = this.getCore().getMachines().getFile();
+		final FileConfiguration machineList = this.core.getMachines().getFile();
 		final List<String> ranks = machineList.getStringList("Inventories." + machine + ".allowed-ranks");
 		ranks.add(rankName);
 
 		machineList.set("Inventories." + machine + ".allowed-ranks", ranks);
-		this.getCore().getMachines().saveConfig();
-		MessagesX.RANK_ADDED_IN_MACHINE.msg(cs, map);
+		this.core.getMachines().saveFile();
+		MessagesX.RANK_ADDED_IN_MACHINE.msg(cs, map, false);
 
+	}
+
+	public int getMode(final String machine) {
+		final int mode = this.core.getMachines().getFile().getInt("Inventories." + machine + ".mode");
+		return mode > 1 || mode < 0 ? 0 : mode;
 	}
 
 }

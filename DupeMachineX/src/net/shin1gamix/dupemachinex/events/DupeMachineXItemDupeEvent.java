@@ -1,4 +1,4 @@
-package net.shin1gamix.dupemachine.Events;
+package net.shin1gamix.dupemachinex.events;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
@@ -6,28 +6,22 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
 
-import net.shin1gamix.dupemachine.Core;
-
 public class DupeMachineXItemDupeEvent extends Event implements Cancellable {
-
-	private final Core core = Core.getPlugin(Core.class);
-
-	/**
-	 * @return the core
-	 */
-	public Core getCore() {
-		return core;
-	}
 
 	private final Player duplicator;
 	private ItemStack item;
 
-	private boolean blackListIgnore;
+	private boolean blackListed;
+	private boolean whiteListed;
+	private final int mode;
 
-	public DupeMachineXItemDupeEvent(final Player duplicator, final ItemStack item, final boolean blackListIgnore) {
+	public DupeMachineXItemDupeEvent(final Player duplicator, final ItemStack item, final boolean blackListed,
+			final boolean whiteListed, final int mode) {
 		this.duplicator = duplicator;
 		this.setItem(item);
-		this.setBlackListIgnore(blackListIgnore);
+		this.setWhiteListed(whiteListed);
+		this.setBlackListed(blackListed);
+		this.mode = mode;
 	}
 
 	public void setItem(ItemStack item) {
@@ -71,23 +65,37 @@ public class DupeMachineXItemDupeEvent extends Event implements Cancellable {
 	 * @return the isBlackListed
 	 */
 	public boolean isBlackListed() {
-		return this.getCore().getDupeHandler().isItemBlackListed(this.getItem())
-				|| this.getCore().getDupeHandler().isTypeBlackListed(this.getItem());
+		return this.blackListed;
 	}
 
 	/**
-	 * @return the blackListIgnore
+	 * @return the whiteListed
 	 */
-	public boolean isBlackListIgnore() {
-		return this.blackListIgnore;
+	public boolean isWhiteListed() {
+		return this.whiteListed;
 	}
 
 	/**
-	 * @param blackListIgnore
-	 *            the blackListIgnore to set
+	 * @param whiteListed
+	 *            the whiteListed to set
 	 */
-	public void setBlackListIgnore(boolean blackListIgnore) {
-		this.blackListIgnore = blackListIgnore;
+	public void setWhiteListed(boolean whiteListed) {
+		this.whiteListed = whiteListed;
+	}
+
+	/**
+	 * @param blackListed
+	 *            the blackListed to set
+	 */
+	public void setBlackListed(boolean blackListed) {
+		this.blackListed = blackListed;
+	}
+
+	/**
+	 * @return the mode
+	 */
+	public int getMode() {
+		return mode;
 	}
 
 }

@@ -1,7 +1,7 @@
 name: DupeMachineX
 author: Shin1gamiX
 version: 1.1
-main: net.shin1gamix.dupemachine.Core
+main: net.shin1gamix.dupemachinex.Core
 website: https://github.com/Cod1ngBugz/DupeMachineX
 description: Allows you to duplicate items in a GUI.
 depend: [Vault]
@@ -21,7 +21,9 @@ permissions:
       dupemachinex.view: true
       dupemachinex.reload: true
       dupemachinex.blacklist: true
+      dupemachinex.whitelist: true
       dupemachinex.unblacklist: true
+      dupemachinex.unwhitelist: true
       dupemachinex.disallow.player: true
       dupemachinex.allow.player: true
       dupemachinex.disallow.rank: true
@@ -46,6 +48,12 @@ permissions:
     description: Allows you to blacklist certain items.
     default: op
   dupemachinex.unblacklist:
+    description: Allows you to unblacklist already blacklisted items.
+    default: op
+  dupemachinex.whitelist:
+    description: Allows you to blacklist certain items.
+    default: op
+  dupemachinex.unwhitelist:
     description: Allows you to unblacklist already blacklisted items.
     default: op
   dupemachinex.disallow.player:

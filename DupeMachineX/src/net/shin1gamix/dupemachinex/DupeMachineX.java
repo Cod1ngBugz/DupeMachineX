@@ -1,4 +1,4 @@
-package net.shin1gamix.dupemachine;
+package net.shin1gamix.dupemachinex;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,22 +11,28 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
-import net.shin1gamix.dupemachine.Commands.Duplication;
-import net.shin1gamix.dupemachine.Listeners.InventoryClose;
-import net.shin1gamix.dupemachine.Listeners.PlayerQuit;
-import net.shin1gamix.dupemachine.Listeners.ViewerInterfere;
-import net.shin1gamix.dupemachine.Utilities.CFG;
-import net.shin1gamix.dupemachine.Utilities.DupeHandler;
-import net.shin1gamix.dupemachine.Utilities.Metrics;
-import net.shin1gamix.dupemachine.Utilities.UpdateChecker;
-import net.shin1gamix.dupemachine.Utilities.Ut;
-import net.shin1gamix.dupemachine.Utilities.VaultSetup;
+import net.shin1gamix.dupemachinex.commands.Duplication;
+import net.shin1gamix.dupemachinex.listeners.InventoryClose;
+import net.shin1gamix.dupemachinex.listeners.PlayerQuit;
+import net.shin1gamix.dupemachinex.listeners.ViewerInterfere;
+import net.shin1gamix.dupemachinex.utilities.CFG;
+import net.shin1gamix.dupemachinex.utilities.DupeHandler;
+import net.shin1gamix.dupemachinex.utilities.Metrics;
+import net.shin1gamix.dupemachinex.utilities.Utils;
+import net.shin1gamix.dupemachinex.utilities.VaultSetup;
 
-public class Core extends JavaPlugin {
+public class DupeMachineX extends JavaPlugin {
+
+	private static DupeMachineX instance;
+
+	public static DupeMachineX getInstance() {
+		return instance == null ? instance = DupeMachineX.getPlugin(DupeMachineX.class) : instance;
+	}
 
 	/* File Configurations */
-	private final CFG cfg = new CFG(this, "config");
-	private final CFG itemBase = new CFG(this, "item-handler");
+	private final CFG messages = new CFG(this, "messages");
+	private final CFG blackList = new CFG(this, "blacklist");
+	private final CFG whiteList = new CFG(this, "whitelist");
 	private final CFG machines = new CFG(this, "machines");
 
 	/* DupeMachine Maps and Tasks */
@@ -53,17 +59,18 @@ public class Core extends JavaPlugin {
 		/* Is vault enabled? */
 		if (!this.getVault().isValid()) {
 			Bukkit.getOnlinePlayers().stream().filter(Player::isOp).forEach(op -> {
-				Ut.msg(op, "&7Vault seems to &4not exist &7or is &cdisabled&7.");
-				Ut.msg(op, "&cDisabling &3DupeMachineX&c...");
+				Utils.msg(op, "&7Vault seems to &4not exist &7or is &cdisabled&7.");
+				Utils.msg(op, "&cDisabling &3DupeMachineX&c...");
 			});
 			Bukkit.getPluginManager().disablePlugin(this);
 			return;
 		}
 
-		this.saveDefaultConfig();
-		this.getCFG().setup(); // File for messages.
-		this.getItembase().setup();// File to handle banned items.
-		this.getMachines().setup(); // File to handle all machines.
+		this.messages.setup(false);
+		MessagesX.repairPaths(this.messages);
+		this.blackList.setup(true);
+		this.whiteList.setup(true);
+		this.machines.setup(true);
 
 		new Duplication(this); // Register the maincommand.
 		new InventoryClose(this); // Register the InventoryCloseEvent.
@@ -76,8 +83,6 @@ public class Core extends JavaPlugin {
 		/* Start all duplication tasks */
 		this.getDupeHandler().startTasks();
 
-		new UpdateChecker(this); // Update check added
-
 		this.enableMetrics(); // Enabling metrics
 	}
 
@@ -87,7 +92,7 @@ public class Core extends JavaPlugin {
 	 */
 	@Override
 	public void onDisable() {
-		this.getDupeHandler().disableFunction(true);
+		this.getDupeHandler().disableFunction();
 	}
 
 	private void enableMetrics() {
@@ -104,24 +109,10 @@ public class Core extends JavaPlugin {
 	}
 
 	/**
-	 * @return the cfg
-	 */
-	public CFG getCFG() {
-		return this.cfg;
-	}
-
-	/**
 	 * @return the inventories
 	 */
 	public Map<Player, Inventory> getInventories() {
 		return this.inventories;
-	}
-
-	/**
-	 * @return the item base
-	 */
-	public CFG getItembase() {
-		return this.itemBase;
 	}
 
 	/**
@@ -157,6 +148,27 @@ public class Core extends JavaPlugin {
 	 */
 	public DupeHandler getDupeHandler() {
 		return this.dupeHandler;
+	}
+
+	/**
+	 * @return the messages
+	 */
+	public CFG getMessages() {
+		return this.messages;
+	}
+
+	/**
+	 * @return the blackList
+	 */
+	public CFG getBlackList() {
+		return this.blackList;
+	}
+
+	/**
+	 * @return the whiteList
+	 */
+	public CFG getWhiteList() {
+		return this.whiteList;
 	}
 
 }
