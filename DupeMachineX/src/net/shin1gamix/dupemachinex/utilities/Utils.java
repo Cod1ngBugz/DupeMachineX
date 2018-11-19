@@ -417,7 +417,6 @@ public final class Utils {
 		final ItemStack[] filteredItems = Stream.of(items).filter(Objects::nonNull)
 				.filter(item -> item.getType() != Material.AIR).toArray(ItemStack[]::new);
 
-		
 		/*
 		 * Attempt to add the items. Returns all items that couldn't fit the inventory.
 		 * The map should be empty if all items were added successfuly.

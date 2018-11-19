@@ -14,6 +14,15 @@ import net.shin1gamix.dupemachinex.DupeMachineX;
 import net.shin1gamix.dupemachinex.MessagesX;
 import net.shin1gamix.dupemachinex.utilities.Utils;
 
+/**
+ * @author Shin1gamiX
+ * 
+ *         The purpose of this class is to handle the closure of the
+ *         inventories. If a player is found to be a duplicator, the closure of
+ *         their inventory shall be handled as well as the ones viewing the
+ *         duplication machine, if any.
+ *
+ */
 public class InventoryClose implements Listener {
 
 	/**

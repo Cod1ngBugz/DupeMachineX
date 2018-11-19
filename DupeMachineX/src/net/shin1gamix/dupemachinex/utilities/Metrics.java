@@ -4,7 +4,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
@@ -196,25 +195,21 @@ public class Metrics {
 	 *
 	 * @return The server specific data.
 	 */
+	@SuppressWarnings("unchecked")
 	private JSONObject getServerData() {
-		// Minecraft specific data
 		int playerAmount;
 		try {
-			// Around MC 1.8 the return type was changed to a collection from an array,
-			// This fixes java.lang.NoSuchMethodError:
-			// org.bukkit.Bukkit.getOnlinePlayers()java/util/Collection;
 			Method onlinePlayersMethod = Class.forName("org.bukkit.Server").getMethod("getOnlinePlayers");
-			playerAmount = onlinePlayersMethod.getReturnType().equals(Collection.class)
+			playerAmount = onlinePlayersMethod.getReturnType() == Collection.class
 					? ((Collection<?>) onlinePlayersMethod.invoke(Bukkit.getServer())).size()
 					: ((Player[]) onlinePlayersMethod.invoke(Bukkit.getServer())).length;
 		} catch (Exception e) {
-			playerAmount = Bukkit.getOnlinePlayers().size(); // Just use the new method if the Reflection failed
+			playerAmount = Bukkit.getOnlinePlayers().size();
 		}
 		int onlineMode = Bukkit.getOnlineMode() ? 1 : 0;
 		String bukkitVersion = Bukkit.getVersion();
 		bukkitVersion = bukkitVersion.substring(bukkitVersion.indexOf("MC: ") + 4, bukkitVersion.length() - 1);
 
-		// OS/Java specific data
 		String javaVersion = System.getProperty("java.version");
 		String osName = System.getProperty("os.name");
 		String osArch = System.getProperty("os.arch");
@@ -245,16 +240,14 @@ public class Metrics {
 		final JSONObject data = getServerData();
 
 		JSONArray pluginData = new JSONArray();
-		// Search for all other bStats Metrics classes to get their plugin data
 		for (Class<?> service : Bukkit.getServicesManager().getKnownServices()) {
 			try {
-				service.getField("B_STATS_VERSION"); // Our identifier :)
+				service.getField("B_STATS_VERSION");
 
 				for (RegisteredServiceProvider<?> provider : Bukkit.getServicesManager().getRegistrations(service)) {
 					try {
 						pluginData.add(provider.getService().getMethod("getPluginData").invoke(provider.getProvider()));
-					} catch (NullPointerException | NoSuchMethodException | IllegalAccessException
-							| InvocationTargetException ignored) {
+					} catch (Exception ignr) {
 					}
 				}
 			} catch (NoSuchFieldException ignored) {

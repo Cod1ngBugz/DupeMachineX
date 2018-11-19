@@ -21,7 +21,7 @@ import net.shin1gamix.dupemachinex.utilities.Metrics;
 import net.shin1gamix.dupemachinex.utilities.Utils;
 import net.shin1gamix.dupemachinex.utilities.VaultSetup;
 
-public class DupeMachineX extends JavaPlugin {
+public final class DupeMachineX extends JavaPlugin {
 
 	private static DupeMachineX instance;
 

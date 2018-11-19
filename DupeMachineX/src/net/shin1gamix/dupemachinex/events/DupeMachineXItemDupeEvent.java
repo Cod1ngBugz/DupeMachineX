@@ -13,10 +13,10 @@ public class DupeMachineXItemDupeEvent extends Event implements Cancellable {
 
 	private boolean blackListed;
 	private boolean whiteListed;
-	private final int mode;
+	private final DupeMode mode;
 
 	public DupeMachineXItemDupeEvent(final Player duplicator, final ItemStack item, final boolean blackListed,
-			final boolean whiteListed, final int mode) {
+			final boolean whiteListed, final DupeMode mode) {
 		this.duplicator = duplicator;
 		this.setItem(item);
 		this.setWhiteListed(whiteListed);
@@ -94,8 +94,8 @@ public class DupeMachineXItemDupeEvent extends Event implements Cancellable {
 	/**
 	 * @return the mode
 	 */
-	public int getMode() {
-		return mode;
+	public DupeMode getMode() {
+		return this.mode;
 	}
 
 }

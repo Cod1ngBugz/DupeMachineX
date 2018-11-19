@@ -30,7 +30,10 @@ public enum MessagesX {
 
 	NO_ITEM_IN_HAND("Messages.No-Item-In-Hand", "&cYou must be holding an item in order to ban it!"),
 
-	HELP_FORMAT("Messages.Help-Format", "&7&m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=",
+	HELP_FORMAT("Messages.Help-Format",
+
+			"&7&m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=",
+
 			"&3/dupe &7- &oOpens the dupe machine.",
 
 			"&3/dupe &9<player> &7- &oViews a players dupe machine.",
@@ -54,7 +57,7 @@ public enum MessagesX {
 			"&7You have successfully &cblacklisted &7the &3%item% &7with id &e%id%"),
 
 	ITEM_UNBLACKLISTED("Messages.Item-UnBlacklisted", "&7You have successfully &aunblacklisted &7the id &e%id%"),
-	
+
 	ITEM_WHITELISTED("Messages.Item-Whitelisted",
 			"&7You have successfully &cwhitelisted &7the &3%item% &7with id &e%id%"),
 

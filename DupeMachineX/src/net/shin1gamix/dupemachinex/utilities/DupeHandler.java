@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -27,6 +28,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import net.shin1gamix.dupemachinex.DupeMachineX;
 import net.shin1gamix.dupemachinex.MessagesX;
 import net.shin1gamix.dupemachinex.events.DupeMachineXItemDupeEvent;
+import net.shin1gamix.dupemachinex.events.DupeMode;
 
 public final class DupeHandler {
 	/**
@@ -437,7 +439,9 @@ public final class DupeHandler {
 		for (final String id : machineFile.getConfigurationSection("Inventories").getKeys(false)) {
 			final int repeatTime = machineFile.getInt("Inventories." + id + ".dupe-ticks");
 			final int itemsPerTime = machineFile.getInt("Inventories." + id + ".items-per-dupe");
-			final int mode = machineFile.getInt("Inventories." + id + ".mode");
+
+			final DupeMode mode = DupeMode.getModeByInt(machineFile.getInt("Inventories." + id + ".mode"));
+
 			this.core.getTasks().add(new BukkitRunnable() {
 				@Override
 				public void run() {
@@ -479,7 +483,7 @@ public final class DupeHandler {
 								continue dupeItemLoop;
 							}
 
-							if (event.getMode() == 1) {
+							if (event.getMode() == DupeMode.WHITELIST) {
 
 								/* Is the item not whitelisted? */
 								if (!event.isWhiteListed()) {
@@ -519,7 +523,7 @@ public final class DupeHandler {
 
 						/* Did any item get duped? If so, play a sound. */
 
-						if (Stream.of(inv.getContents()).filter(item -> item != null).count() > 0 && playSound) {
+						if (Stream.of(inv.getContents()).filter(Objects::nonNull).count() > 0 && playSound) {
 							playSound(player);
 						}
 

@@ -9,6 +9,15 @@ import org.bukkit.event.player.PlayerQuitEvent;
 
 import net.shin1gamix.dupemachinex.DupeMachineX;
 
+/**
+ * @author Shin1gamiX
+ * 
+ *         The purpose of this class is to handle the disconnection of any
+ *         player. We want to avoid having memory leaks by not removing useless
+ *         data from our maps. Therefore, we remove any user that has
+ *         disconnected or has been kicked from all maps.
+ *
+ */
 public class PlayerQuit implements Listener {
 
 	/**
